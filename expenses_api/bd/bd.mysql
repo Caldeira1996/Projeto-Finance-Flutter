@@ -1,0 +1,6 @@
+create table transactions (
+    id int AUTO_INCREMENT primary key,
+    title VARCHAR(100) NOT NULL,
+    value DECIMAL(10, 2) NOT NULL,
+    date DATE NOT NULL
+);
