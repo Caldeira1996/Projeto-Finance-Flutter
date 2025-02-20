@@ -1,0 +1,2 @@
+C:/Users/Caldeira/OneDrive/Documentos/Curso_Flutter/expenses/android/app/.cxx/RelWithDebInfo/54152w67/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Caldeira/OneDrive/Documentos/Curso_Flutter/expenses/android/app/.cxx/RelWithDebInfo/54152w67/armeabi-v7a/CMakeFiles/rebuild_cache.dir

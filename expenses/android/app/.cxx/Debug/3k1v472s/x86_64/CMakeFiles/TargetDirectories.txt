@@ -1,0 +1,2 @@
+C:/Users/Caldeira/OneDrive/Documentos/Curso_Flutter/expenses/android/app/.cxx/Debug/3k1v472s/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/Caldeira/OneDrive/Documentos/Curso_Flutter/expenses/android/app/.cxx/Debug/3k1v472s/x86_64/CMakeFiles/rebuild_cache.dir

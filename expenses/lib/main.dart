@@ -1,5 +1,4 @@
-//import 'package:expenses/components/transaction_form.dart';
-import 'package:expenses/api/api_services.dart';
+import 'package:expenses/bd/bd.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'components/transaction_form.dart';
@@ -8,6 +7,9 @@ import 'components/transaction_list.dart';
 import './components/chart.dart';
 import 'login/login.dart';
 import 'login/home_screen.dart';
+import 'bd/bd.dart';
+import 'package:http/http.dart';
+//import 'package:sqflite/sql.dart' hide Transaction;
 
 void main() => runApp(const ExpensesApp());
 
@@ -67,18 +69,17 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _transactions = [];
 
-  // Função para carregar as transações da API
-  final ApiServices _apiServices = ApiServices(); // Chamando API
-
+  // Função para carregar as transações do banco de dados local
   @override
   void initState() {
     super.initState();
     _loadTransactions();
   }
 
+  //Função para carregar as transações do banco de dados local
   void _loadTransactions() async {
     try {
-      final transactions = await _apiServices.fetchTransactions();
+      final transactions = await DatabaseHelper.instance.getTransactions();
       setState(() {
         _transactions.clear();
         _transactions.addAll(transactions);
@@ -87,6 +88,19 @@ class _MyHomePageState extends State<MyHomePage> {
       print('Erro ao carregar transações: $e');
     }
   }
+
+  // void _loadApiTransactions() async {
+  //   try {
+  //     final apiTransactions = await _apiServices.fetchTransactions();
+  //     // Atualiza localmente com os dados da API
+  //     for (var transaction in apiTransactions) {
+  //       await DatabaseHelper.instance.insertTransaction(transaction);
+  //     }
+  //     _loadTransactions(); // Recarrega do banco local
+  //   } catch (e) {
+  //     print('Erro ao carregar transações da API: $e');
+  //   }
+  // }
 
   // Função para filtrar as transações recentes
   List<Transaction> get _recentTransactions {
@@ -100,53 +114,53 @@ class _MyHomePageState extends State<MyHomePage> {
   // Função para adicionar transação
   void _addTransaction(String title, double value, DateTime date) async {
     final newTransaction = Transaction(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // garante ID unico
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title,
       value: value,
       date: date,
     );
-    print('Enviando para API: ${newTransaction.toJson()}'); // DEBUG
-
-    // VERIFICA SE A TRANSAÇÃO JÁ EXISTE NA LISTA PELO ID
-    bool exists = _transactions.any((tr) => tr.id == newTransaction.id);
-    if (exists) {
-      print('Transação já existe, não será adicionada novamente.');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Esta transação já existe!')));
-      return; // Evita duplicação
-    }
-
-    // Adiciona na lista local APÒS a verificação de duplicação
-    setState(() {
-      _transactions.add(newTransaction);
-    });
-    print('Adicionado localmente: ${newTransaction.toJson()}'); // DEBUG
-
-    //Navigator.of(context).pop();
 
     try {
-      await _apiServices
-          .addTransaction(newTransaction); // chama api para add transação
-      Navigator.of(context).pop(); //fecha o modal
-    } catch (e) {
-      //Se falhar, remove a transação da lista local e mostra a mensagem de erro
+      // primeiro salva localmente
+      await DatabaseHelper.instance.insertTransaction(newTransaction);
+
       setState(() {
-        _transactions.remove(newTransaction);
+        _transactions.add(newTransaction);
       });
-      print('Erro ao adicionar transação: $e');
+
+      Navigator.of(context).pop();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao adicionar transação')),
+        SnackBar(content: Text('Transação adicionada com sucesso!')),
+      );
+    } catch (e) {
+      print('Erro ao salvar localmente: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao salvar transação: ${e.toString}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
   //Função para remover transação
-  _removeTransaction(String id) {
-    setState(() {
-      _transactions.removeWhere((tr) {
-        return tr.id == id;
+  void _removeTransaction(String id) async {
+    try {
+      //Remove localmente do banco de dados
+      await DatabaseHelper.instance.deleteTransaction(id);
+      setState(() {
+        _transactions.removeWhere((tr) => tr.id == id);
       });
-    });
+    } catch (e) {
+      print('Erro ao remover a transação: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao remover transação!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Função para abrir o formulário de transação

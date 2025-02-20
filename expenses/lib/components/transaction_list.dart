@@ -16,7 +16,11 @@ class TransactionList extends StatelessWidget {
     return transactions.isEmpty // Verifica se a lista está vazia
         ? Column(
             children: [
-              const SizedBox(height: 20), // Espaçamento
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.3 > 200
+                    ? 200
+                    : MediaQuery.of(context).size.height * 0.3,
+              ), // Espaçamento
               Text(
                 'Nenhuma Transação Cadastrada!', // Mensagem de aviso
                 style: Theme.of(context).textTheme.headlineSmall,
